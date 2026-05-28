@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Closet AI — Mockups</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 3rem 1.5rem;
+    background: #F0EBE0;
+    font-family: 'Pretendard', system-ui, sans-serif;
+    color: #2A2A28;
+    min-height: 100vh;
+  }
+  h1.doc-title {
+    text-align: center;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-weight: 400;
+    font-size: 36px;
+    margin: 0 0 8px;
+    color: #2A2A28;
+  }
+  p.doc-subtitle {
+    text-align: center;
+    color: #6B6359;
+    margin: 0 0 48px;
+    font-size: 14px;
+  }
+  .screens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .screen-wrap { flex: 0 0 auto; }
+  .screen-label {
+    text-align: center;
+    font-size: 13px;
+    color: #6B6359;
+    margin: 0 0 12px;
+    letter-spacing: 0.5px;
+  }
+  .screen-label strong { color: #C56F45; font-weight: 500; }
+  .phone {
+    background: #FAF6EF;
+    border-radius: 32px;
+    overflow: hidden;
+    width: 320px;
+    border: 6px solid #2A2A28;
+  }
+  .status { display: flex; justify-content: space-between; align-items: center; padding: 12px 22px 4px; font-size: 11px; color: #8A8378; }
+  .nav-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 0; }
+  .icon-btn { background: transparent; border: none; padding: 6px; cursor: pointer; }
+  .icon-btn .ti { font-size: 20px; color: #2A2A28; }
+  .header-block { padding: 12px 22px 4px; }
+  .header-block .day { font-size: 11px; color: #8A8378; margin: 0 0 4px; letter-spacing: 0.5px; }
+  .header-block h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 28px; font-weight: 400; color: #2A2A28; margin: 0; line-height: 1.1; }
+  .header-block .ctx { font-size: 12px; color: #6B6359; margin: 8px 0 0; }
+  .outfit-card { margin: 14px 18px 0; background: #FFFFFF; border-radius: 18px; border: 0.5px solid #E8DFCE; overflow: hidden; position: relative; }
+  .outfit-tag { position: absolute; top: 14px; left: 14px; background: #FAF6EF; padding: 4px 10px; border-radius: 100px; font-size: 11px; color: #C56F45; font-weight: 500; }
+  .tryon-area { padding: 48px 0 12px; display: flex; justify-content: center; }
+  .tap-cue { text-align: center; padding: 6px 0 16px; font-size: 11px; color: #8A8378; }
+  .chips-row { display: flex; gap: 8px; padding: 12px 18px 0; }
+  .chip { flex: 1; padding: 11px; background: #FFFFFF; border: 0.5px solid #E8DFCE; border-radius: 100px; font-size: 11px; color: #2A2A28; font-family: inherit; cursor: pointer; }
+  .chip.muted { background: transparent; color: #8A8378; }
+  .bottom-nav { display: flex; justify-content: space-around; padding: 18px 20px 14px; margin-top: 14px; border-top: 0.5px solid #EFE4D3; }
+  .tab { text-align: center; }
+  .tab .ti { font-size: 18px; color: #8A8378; }
+  .tab .label { font-size: 11px; color: #8A8378; margin: 2px 0 0; }
+  .tab.active .ti, .tab.active .label { color: #C56F45; }
+  .tab.active .label { font-weight: 500; }
+  .ctx-badges { padding: 4px 22px 0; display: flex; align-items: center; gap: 8px; }
+  .body-badge { font-size: 11px; color: #C56F45; padding: 3px 10px; background: #FFFFFF; border: 0.5px solid #EFD9C2; border-radius: 100px; }
+  .body-badge .ti { font-size: 11px; }
+  .schedule-label { font-size: 11px; color: #8A8378; }
+  .hero-tryon { display: flex; justify-content: center; padding: 8px 0 0; }
+  .items-strip { display: flex; gap: 8px; padding: 8px 18px 0; justify-content: center; }
+  .item-thumb { width: 54px; height: 54px; background: #FFFFFF; border-radius: 12px; border: 0.5px solid #E8DFCE; display: flex; align-items: center; justify-content: center; }
+  .why-cta { padding: 14px 18px 0; }
+  .why-cta button { width: 100%; padding: 14px 18px; background: #2A2A28; color: #FAF6EF; border: none; border-radius: 16px; font-family: inherit; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+  .why-cta .main { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+  .why-cta .sub { font-size: 11px; color: #C9BFB0; }
+  .secondary-row { display: flex; gap: 4px; padding: 10px 18px 18px; justify-content: center; }
+  .text-btn { background: transparent; border: none; font-size: 11px; color: #6B6359; padding: 6px; font-family: inherit; cursor: pointer; }
+  .text-btn.divider { color: #D5C9B4; padding: 6px 0; }
+  .mini-ref { display: flex; justify-content: center; padding: 8px 0 0; }
+  .hero-statement { padding: 8px 22px 0; }
+  .hero-statement h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: 21px; font-weight: 400; color: #2A2A28; margin: 0; line-height: 1.3; }
+  .reasoning-blocks { padding: 14px 22px 0; }
+  .reasoning-blocks .block { margin-bottom: 12px; }
+  .reasoning-blocks .block + .block { padding-top: 12px; border-top: 0.5px solid #EFE4D3; }
+  .reasoning-blocks .label-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .reasoning-blocks .label-row .ti { font-size: 13px; color: #C56F45; }
+  .reasoning-blocks .label-row span { font-size: 11px; color: #C56F45; font-weight: 500; letter-spacing: 0.5px; }
+  .reasoning-blocks p { font-size: 12px; color: #3D3833; margin: 0; line-height: 1.7; }
+  .save-cta { padding: 4px 18px 0; }
+  .save-cta button { width: 100%; padding: 13px; background: #2A2A28; color: #FAF6EF; border: none; border-radius: 16px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; }
+  .save-cta .ti { font-size: 14px; }
+  .small-secondary { display: flex; justify-content: center; padding: 8px 18px 18px; }
+  .nav-title { font-size: 11px; color: #8A8378; padding: 6px; }
+</style>
+</head>
+<body>
+
+<h1 class="doc-title">Closet AI — Main Demo Flow</h1>
+<p class="doc-subtitle">홈 → 가상 시착 상세 → 스타일 설명</p>
+
+<div class="screens">
+
+  <!-- ===== 01. HOME ===== -->
+  <div class="screen-wrap">
+    <p class="screen-label"><strong>01.</strong> Home — 오늘의 추천</p>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>•••</span></div>
+      <div class="header-block">
+        <p class="day">수 · 5월 27일</p>
+        <h1>오늘의 코디</h1>
+        <p class="ctx">18-24°C <span style="opacity:0.4">·</span> 오후 카페 미팅</p>
+      </div>
+      <div class="outfit-card">
+        <div class="outfit-tag">오늘의 코디</div>
+        <div class="tryon-area">
+          <svg width="120" height="200" viewBox="0 0 200 320">
+            <ellipse cx="100" cy="38" rx="26" ry="30" fill="#F0E2CC"/>
+            <path d="M 74 30 Q 100 4 126 30 L 124 18 Q 100 6 76 18 Z" fill="#3D3833"/>
+            <rect x="90" y="62" width="20" height="14" fill="#F0E2CC"/>
+            <path d="M 58 84 Q 100 76 142 84 L 148 196 L 52 196 Z" fill="#C56F45"/>
+            <path d="M 58 84 L 42 170 L 52 175 L 64 90 Z" fill="#C56F45"/>
+            <path d="M 142 84 L 158 170 L 148 175 L 136 90 Z" fill="#C56F45"/>
+            <rect x="68" y="196" width="64" height="92" fill="#3D3833"/>
+            <ellipse cx="80" cy="294" rx="14" ry="6" fill="#2A2A28"/>
+            <ellipse cx="120" cy="294" rx="14" ry="6" fill="#2A2A28"/>
+          </svg>
+        </div>
+        <div class="tap-cue">탭해서 입어보기 →</div>
+      </div>
+      <div class="chips-row">
+        <button class="chip">다른 분위기 보기</button>
+        <button class="chip muted">오늘 어디 가요?</button>
+      </div>
+      <div class="bottom-nav">
+        <div class="tab active"><i class="ti ti-home" aria-hidden="true"></i><p class="label">홈</p></div>
+        <div class="tab"><i class="ti ti-shirt" aria-hidden="true"></i><p class="label">옷장</p></div>
+        <div class="tab"><i class="ti ti-bookmark" aria-hidden="true"></i><p class="label">저장</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 02. OUTFIT DETAIL ===== -->
+  <div class="screen-wrap">
+    <p class="screen-label"><strong>02.</strong> Outfit Detail — 가상 시착</p>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>•••</span></div>
+      <div class="nav-row">
+        <button class="icon-btn" aria-label="뒤로 가기"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <button class="icon-btn" aria-label="저장"><i class="ti ti-heart" aria-hidden="true"></i></button>
+      </div>
+      <div class="ctx-badges">
+        <span class="body-badge"><i class="ti ti-user" aria-hidden="true"></i> 당신의 체형 기준</span>
+        <span class="schedule-label">오후 카페 미팅</span>
+      </div>
+      <div class="hero-tryon">
+        <svg width="180" height="270" viewBox="0 0 200 320">
+          <ellipse cx="100" cy="38" rx="26" ry="30" fill="#F0E2CC"/>
+          <path d="M 74 30 Q 100 4 126 30 L 124 18 Q 100 6 76 18 Z" fill="#3D3833"/>
+          <rect x="90" y="62" width="20" height="14" fill="#F0E2CC"/>
+          <path d="M 58 84 Q 100 76 142 84 L 148 196 L 52 196 Z" fill="#E8DCC4"/>
+          <path d="M 58 84 L 42 170 L 52 175 L 64 90 Z" fill="#E8DCC4"/>
+          <path d="M 142 84 L 158 170 L 148 175 L 136 90 Z" fill="#E8DCC4"/>
+          <ellipse cx="44" cy="178" rx="6" ry="8" fill="#F0E2CC"/>
+          <ellipse cx="156" cy="178" rx="6" ry="8" fill="#F0E2CC"/>
+          <path d="M 138 100 Q 152 112 150 130 L 152 180 L 138 180 L 140 130 Z" fill="#C56F45"/>
+          <rect x="68" y="196" width="64" height="92" fill="#5A5946"/>
+          <line x1="100" y1="200" x2="100" y2="285" stroke="#4A4A38" stroke-width="0.5"/>
+          <ellipse cx="80" cy="294" rx="14" ry="6" fill="#8B6F47"/>
+          <ellipse cx="120" cy="294" rx="14" ry="6" fill="#8B6F47"/>
+        </svg>
+      </div>
+      <div class="items-strip">
+        <div class="item-thumb"><svg width="30" height="30" viewBox="0 0 40 40"><path d="M 8 12 Q 20 8 32 12 L 34 32 L 6 32 Z" fill="#E8DCC4"/></svg></div>
+        <div class="item-thumb"><svg width="30" height="30" viewBox="0 0 40 40"><rect x="14" y="6" width="12" height="28" fill="#5A5946"/></svg></div>
+        <div class="item-thumb"><svg width="30" height="30" viewBox="0 0 40 40"><ellipse cx="20" cy="22" rx="14" ry="8" fill="#8B6F47"/></svg></div>
+        <div class="item-thumb"><svg width="30" height="30" viewBox="0 0 40 40"><rect x="10" y="14" width="20" height="18" rx="2" fill="#C56F45"/><path d="M 14 14 Q 14 8 20 8 Q 26 8 26 14" stroke="#C56F45" stroke-width="1.5" fill="none"/></svg></div>
+      </div>
+      <div class="why-cta">
+        <button>
+          <div>
+            <div class="main">왜 이 코디?</div>
+            <div class="sub">체형 · 일정 · 날씨 기준 설명</div>
+          </div>
+          <i class="ti ti-arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="secondary-row">
+        <button class="text-btn">다른 추천 보기</button>
+        <span class="text-btn divider">·</span>
+        <button class="text-btn">옷장에서 고르기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 03. RATIONALE ===== -->
+  <div class="screen-wrap">
+    <p class="screen-label"><strong>03.</strong> Rationale — 스타일 설명</p>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>•••</span></div>
+      <div class="nav-row">
+        <button class="icon-btn" aria-label="뒤로 가기"><i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <span class="nav-title">스타일 분석</span>
+      </div>
+      <div class="mini-ref">
+        <svg width="56" height="92" viewBox="0 0 200 320">
+          <ellipse cx="100" cy="38" rx="26" ry="30" fill="#F0E2CC"/>
+          <path d="M 74 30 Q 100 4 126 30 L 124 18 Q 100 6 76 18 Z" fill="#3D3833"/>
+          <rect x="90" y="62" width="20" height="14" fill="#F0E2CC"/>
+          <path d="M 58 84 Q 100 76 142 84 L 148 196 L 52 196 Z" fill="#E8DCC4"/>
+          <path d="M 58 84 L 42 170 L 52 175 L 64 90 Z" fill="#E8DCC4"/>
+          <path d="M 142 84 L 158 170 L 148 175 L 136 90 Z" fill="#E8DCC4"/>
+          <rect x="68" y="196" width="64" height="92" fill="#5A5946"/>
+          <ellipse cx="80" cy="294" rx="14" ry="6" fill="#8B6F47"/>
+          <ellipse cx="120" cy="294" rx="14" ry="6" fill="#8B6F47"/>
+        </svg>
+      </div>
+      <div class="hero-statement">
+        <h1>어깨 라인을 부드럽게 풀어주는 코디예요</h1>
+      </div>
+      <div class="reasoning-blocks">
+        <div class="block">
+          <div class="label-row"><i class="ti ti-user" aria-hidden="true"></i><span>체형</span></div>
+          <p>어깨가 좁은 편이라, 드롭 숄더 실루엣의 오트 컬러 니트가 라인을 자연스럽게 확장시켜줘요.</p>
+        </div>
+        <div class="block">
+          <div class="label-row"><i class="ti ti-calendar" aria-hidden="true"></i><span>일정</span></div>
+          <p>오후 카페 미팅이라는 캐주얼-세미캐주얼 톤에 맞춰, 격식보다 편안함을 우선했어요.</p>
+        </div>
+        <div class="block">
+          <div class="label-row"><i class="ti ti-cloud" aria-hidden="true"></i><span>날씨</span></div>
+          <p>18-24°C 일교차에 얇은 니트 한 겹이 적당해요. 더우면 소매를 살짝 걷어도 핏이 유지돼요.</p>
+        </div>
+      </div>
+      <div class="save-cta">
+        <button>
+          <i class="ti ti-heart" aria-hidden="true"></i>
+          <span>이 코디 저장하기</span>
+        </button>
+      </div>
+      <div class="small-secondary">
+        <button class="text-btn">다른 추천 보기</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

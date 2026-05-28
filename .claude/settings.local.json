@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:/Users/gusdk/Desktop/SWAI비즈니스응용설계/project/closet-ai-app\" && npm create vite@latest . -- --template react-ts 2>&1)",
+      "Bash(cd \"C:/Users/gusdk/Desktop/SWAI비즈니스응용설계/project/closet-ai-app\" && printf '\\\\n' | npm create vite@latest . -- --template react-ts 2>&1)",
+      "Bash(cd \"C:/Users/gusdk/Desktop/SWAI비즈니스응용설계/project/closet-ai-app\" && npm run build 2>&1)"
+    ]
+  }
+}
