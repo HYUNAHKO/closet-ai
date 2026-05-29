@@ -5,7 +5,7 @@
  */
 import { supabase, isSupabaseAvailable } from '../supabase';
 import { demoRecommendations } from '../mockData';
-import type { OutfitRecommendation, ClothingItem } from '../../types';
+import type { OutfitRecommendation, OutfitRationale, ClothingItem, UserProfile, TodayContext } from '../../types';
 import type { OutfitRecommendationRow, ClothingItemRow, SavedOutfitRow } from '../../types/database';
 
 // ── Row → 앱 타입 변환 ────────────────────────────────────
@@ -71,6 +71,7 @@ export async function fetchRecommendations(
     .from('outfit_recommendations')
     .select('*')
     .eq('user_id', userId)
+    .order('try_on_image_url', { ascending: false })  // try-on 있는 코디 우선
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -157,6 +158,47 @@ export async function toggleSavedOutfit(
       { user_id: userId, outfit_id: outfitId } as never
     );
     return true;
+  }
+}
+
+// ── recommend Edge Function — rationale 생성 ─────────────────
+export async function generateRationale(params: {
+  user: UserProfile;
+  context: TodayContext;
+  items: ClothingItem[];
+}): Promise<OutfitRationale | null> {
+  if (!isSupabaseAvailable) return null;
+
+  try {
+    const { data, error } = await supabase!.functions.invoke<OutfitRationale>('recommend', {
+      body: {
+        user: {
+          shoulderWidth: params.user.bodyMeasurements.shoulderWidth,
+          waistRatio: params.user.bodyMeasurements.waistRatio,
+          legRatio: params.user.bodyMeasurements.legRatio,
+        },
+        context: {
+          date: params.context.date.toISOString(),
+          weather: params.context.weather,
+          schedule: params.context.schedule,
+        },
+        items: params.items.map((item) => ({
+          category: item.category,
+          label: item.label,
+          colorHex: item.colorHex,
+        })),
+      },
+    });
+
+    if (error || !data) {
+      console.error('[generateRationale] error:', error);
+      return null;
+    }
+
+    return data;
+  } catch (err) {
+    console.error('[generateRationale] unexpected error:', err);
+    return null;
   }
 }
 

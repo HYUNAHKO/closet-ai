@@ -3,6 +3,7 @@ import { HomePage } from './pages/HomePage';
 import { OutfitDetailPage } from './pages/OutfitDetailPage';
 import { RationalePage } from './pages/RationalePage';
 import { WardrobePage } from './pages/WardrobePage';
+import { SavedPage } from './pages/SavedPage';
 
 // 모바일 앱 컨테이너 — 최대 너비 390px로 중앙 정렬 (데스크톱 데모 시 폰 느낌)
 function AppShell({ children }: { children: React.ReactNode }) {
@@ -24,18 +25,9 @@ export function App() {
           <Route path="/outfit/:id" element={<OutfitDetailPage />} />
           <Route path="/outfit/:id/rationale" element={<RationalePage />} />
           <Route path="/wardrobe" element={<WardrobePage />} />
-          <Route path="/saved" element={<PlaceholderPage title="저장됨" />} />
+          <Route path="/saved" element={<SavedPage />} />
         </Routes>
       </AppShell>
     </BrowserRouter>
-  );
-}
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] gap-3">
-      <p className="font-serif text-[24px] text-ink">{title}</p>
-      <p className="text-[13px] text-ink-hint">Week 2에서 구현 예정</p>
-    </div>
   );
 }

@@ -25,12 +25,20 @@ export function OutfitCard({ outfit }: OutfitCardProps) {
 
       {/* 가상 착용 영역 */}
       <div className="flex justify-center pt-12 pb-3">
-        <TryOnSilhouette variant="home" />
+        {outfit.tryOnImageUrl ? (
+          <img
+            src={outfit.tryOnImageUrl}
+            alt="가상 시착 미리보기"
+            className="w-[200px] h-[280px] object-cover rounded-[14px] shadow-sm"
+          />
+        ) : (
+          <TryOnSilhouette variant="home" />
+        )}
       </div>
 
       {/* 탭 유도 */}
       <p className="text-center text-[11px] text-ink-hint pb-4">
-        탭해서 입어보기 →
+        탭해서 자세히 보기 →
       </p>
     </div>
   );

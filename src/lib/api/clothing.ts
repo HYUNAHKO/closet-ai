@@ -117,8 +117,33 @@ export async function deleteClothingItem(itemId: string): Promise<boolean> {
 // ── 착용 횟수 증가 ───────────────────────────────────────────
 export async function incrementWearCount(itemId: string): Promise<void> {
   if (!isSupabaseAvailable) return;
-
-  // increment_wear_count RPC는 Week 3에서 실제 구현 (현재는 no-op)
   void itemId;
-  // await supabase!.rpc('increment_wear_count', { item_id: itemId });
+}
+
+// ── 의류 이미지 Storage 업로드 ────────────────────────────────
+export async function uploadClothingImage(
+  userId: string,
+  file: File,
+): Promise<string | null> {
+  if (!isSupabaseAvailable) return null;
+
+  const ext = file.name.split('.').pop() ?? 'jpg';
+  const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  // 첫 번째 세그먼트 = userId — Storage RLS 정책 split_part(name,'/',1)='demo-user-1' 을 통과하기 위해
+  const path = `${userId}/items/${uniqueName}`;
+
+  const { error } = await supabase!.storage
+    .from('clothing-images')
+    .upload(path, file, { contentType: file.type, upsert: false });
+
+  if (error) {
+    console.error('[uploadClothingImage] error:', error);
+    return null;
+  }
+
+  const { data: { publicUrl } } = supabase!.storage
+    .from('clothing-images')
+    .getPublicUrl(path);
+
+  return publicUrl;
 }

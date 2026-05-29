@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/shared/TopBar';
 import { BottomNav } from '../components/shared/BottomNav';
-import { fetchClothingItems, addClothingItem, deleteClothingItem } from '../lib/api/clothing';
+import { fetchClothingItems, addClothingItem, deleteClothingItem, uploadClothingImage } from '../lib/api/clothing';
+import { classifyClothing } from '../lib/api/vision';
 import { isSupabaseAvailable } from '../lib/supabase';
 import type { ClothingItem } from '../types';
 
@@ -143,6 +144,11 @@ function AddItemModal({ onClose, onAdd }: AddItemModalProps) {
   const [style, setStyle] = useState('');
   const [season, setSeason] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+  const [classifying, setClassifying] = useState(false);
+  const [classifyStatus, setClassifyStatus] = useState<'idle' | 'uploading' | 'classifying' | 'done' | 'upload-error' | 'classify-error'>('idle');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const seasonOptions = ['봄', '여름', '가을', '겨울'];
 
@@ -152,6 +158,44 @@ function AddItemModal({ onClose, onAdd }: AddItemModalProps) {
     );
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 로컬 미리보기 (즉시)
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+
+    setClassifying(true);
+    setClassifyStatus('uploading');
+    try {
+      const url = await uploadClothingImage('demo-user-1', file);
+      if (!url) {
+        setClassifyStatus('upload-error');
+        return;
+      }
+      setUploadedImageUrl(url);
+      setClassifyStatus('classifying');
+
+      const result = await classifyClothing(url);
+      if (!result) {
+        setClassifyStatus('classify-error');
+        return;
+      }
+
+      setLabel(result.label);
+      setCategory(result.category);
+      setColorHex(result.colorHex);
+      if (result.material) setMaterial(result.material);
+      if (result.style) setStyle(result.style);
+      if (result.season?.length) setSeason(result.season);
+      setClassifyStatus('done');
+    } finally {
+      setClassifying(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!label.trim()) return;
     setSaving(true);
@@ -159,8 +203,8 @@ function AddItemModal({ onClose, onAdd }: AddItemModalProps) {
       ownerId: 'demo-user-1',
       category,
       label: label.trim(),
-      imageUrl: '',
-      isolatedImageUrl: '',
+      imageUrl: uploadedImageUrl,
+      isolatedImageUrl: uploadedImageUrl,
       colorHex,
       attributes: {
         material: material || undefined,
@@ -183,6 +227,59 @@ function AddItemModal({ onClose, onAdd }: AddItemModalProps) {
         <div className="w-10 h-1 bg-border rounded-full mx-auto mb-5" />
 
         <h2 className="text-[16px] font-medium text-ink mb-5">새 옷 추가</h2>
+
+        {/* 이미지 업로드 (선택) */}
+        <div className="mb-4">
+          <label className="text-[11px] text-ink-hint mb-1.5 block">사진 업로드 (선택 — AI가 자동 분류)</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          {imagePreview ? (
+            <div className="space-y-1.5">
+              <div className="relative w-full h-[120px] rounded-[12px] overflow-hidden border border-border">
+                <img src={imagePreview} alt="미리보기" className="w-full h-full object-cover" />
+                {classifying && (
+                  <div className="absolute inset-0 bg-ink/60 flex items-center justify-center">
+                    <span className="text-white text-[11px]">
+                      {classifyStatus === 'uploading' ? '⬆ 업로드 중…' : '✨ AI 분류 중…'}
+                    </span>
+                  </div>
+                )}
+                {!classifying && (
+                  <button
+                    onClick={() => { setImagePreview(''); setUploadedImageUrl(''); setClassifyStatus('idle'); }}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/80 flex items-center justify-center"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B6359" strokeWidth="3" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {classifyStatus === 'done' && (
+                <p className="text-[10px] text-olive">✓ AI가 분류했어요. 아래 내용을 확인하고 저장하세요.</p>
+              )}
+              {classifyStatus === 'upload-error' && (
+                <p className="text-[10px] text-brand">⚠ 이미지 업로드 실패. Supabase Storage 버킷이 설정됐는지 확인하세요.</p>
+              )}
+              {classifyStatus === 'classify-error' && (
+                <p className="text-[10px] text-brand">⚠ AI 분류 실패. classify 함수가 배포됐고 ANTHROPIC_API_KEY가 설정됐는지 확인하세요.</p>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-[72px] rounded-[12px] border border-dashed border-border flex items-center justify-center gap-2 text-[12px] text-ink-hint"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>
+              사진 선택
+            </button>
+          )}
+        </div>
 
         {/* 이름 */}
         <div className="mb-4">
