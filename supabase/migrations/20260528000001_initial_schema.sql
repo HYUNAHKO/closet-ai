@@ -29,13 +29,19 @@ CREATE TABLE IF NOT EXISTS users (
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- RLS 활성화
+-- RLS 활성화 (반드시 정책 생성 전에 실행)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- 정책: 본인 행만 읽기/쓰기
-CREATE POLICY "users: self read"   ON users FOR SELECT USING (auth.uid()::text = id OR id = 'demo-user-1');
-CREATE POLICY "users: self insert" ON users FOR INSERT WITH CHECK (auth.uid()::text = id OR id = 'demo-user-1');
-CREATE POLICY "users: self update" ON users FOR UPDATE USING (auth.uid()::text = id OR id = 'demo-user-1');
+-- 정책: 본인 행만 읽기/쓰기 (중복 실행 안전)
+DO $$ BEGIN
+  CREATE POLICY "users: self read"   ON users FOR SELECT USING (auth.uid()::text = id OR id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "users: self insert" ON users FOR INSERT WITH CHECK (auth.uid()::text = id OR id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "users: self update" ON users FOR UPDATE USING (auth.uid()::text = id OR id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ===========================
 -- 2. clothing_items
@@ -59,22 +65,27 @@ CREATE INDEX IF NOT EXISTS clothing_items_owner_idx ON clothing_items(owner_id);
 
 ALTER TABLE clothing_items ENABLE ROW LEVEL SECURITY;
 
--- 정책: 본인 의류만 접근
-CREATE POLICY "clothing_items: owner read"
-  ON clothing_items FOR SELECT
-  USING (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
-
-CREATE POLICY "clothing_items: owner insert"
-  ON clothing_items FOR INSERT
-  WITH CHECK (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
-
-CREATE POLICY "clothing_items: owner update"
-  ON clothing_items FOR UPDATE
-  USING (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
-
-CREATE POLICY "clothing_items: owner delete"
-  ON clothing_items FOR DELETE
-  USING (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
+-- 정책: 본인 의류만 접근 (중복 실행 안전)
+DO $$ BEGIN
+  CREATE POLICY "clothing_items: owner read"
+    ON clothing_items FOR SELECT
+    USING (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "clothing_items: owner insert"
+    ON clothing_items FOR INSERT
+    WITH CHECK (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "clothing_items: owner update"
+    ON clothing_items FOR UPDATE
+    USING (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "clothing_items: owner delete"
+    ON clothing_items FOR DELETE
+    USING (owner_id = auth.uid()::text OR owner_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ===========================
 -- 3. outfit_recommendations
@@ -101,21 +112,26 @@ CREATE INDEX IF NOT EXISTS outfit_recs_user_idx ON outfit_recommendations(user_i
 
 ALTER TABLE outfit_recommendations ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "outfit_recs: owner read"
-  ON outfit_recommendations FOR SELECT
-  USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
-
-CREATE POLICY "outfit_recs: owner insert"
-  ON outfit_recommendations FOR INSERT
-  WITH CHECK (user_id = auth.uid()::text OR user_id = 'demo-user-1');
-
-CREATE POLICY "outfit_recs: owner update"
-  ON outfit_recommendations FOR UPDATE
-  USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
-
-CREATE POLICY "outfit_recs: owner delete"
-  ON outfit_recommendations FOR DELETE
-  USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+DO $$ BEGIN
+  CREATE POLICY "outfit_recs: owner read"
+    ON outfit_recommendations FOR SELECT
+    USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "outfit_recs: owner insert"
+    ON outfit_recommendations FOR INSERT
+    WITH CHECK (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "outfit_recs: owner update"
+    ON outfit_recommendations FOR UPDATE
+    USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "outfit_recs: owner delete"
+    ON outfit_recommendations FOR DELETE
+    USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ===========================
 -- 4. saved_outfits
@@ -132,17 +148,21 @@ CREATE INDEX IF NOT EXISTS saved_outfits_user_idx ON saved_outfits(user_id);
 
 ALTER TABLE saved_outfits ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "saved_outfits: owner read"
-  ON saved_outfits FOR SELECT
-  USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
-
-CREATE POLICY "saved_outfits: owner insert"
-  ON saved_outfits FOR INSERT
-  WITH CHECK (user_id = auth.uid()::text OR user_id = 'demo-user-1');
-
-CREATE POLICY "saved_outfits: owner delete"
-  ON saved_outfits FOR DELETE
-  USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+DO $$ BEGIN
+  CREATE POLICY "saved_outfits: owner read"
+    ON saved_outfits FOR SELECT
+    USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "saved_outfits: owner insert"
+    ON saved_outfits FOR INSERT
+    WITH CHECK (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE POLICY "saved_outfits: owner delete"
+    ON saved_outfits FOR DELETE
+    USING (user_id = auth.uid()::text OR user_id = 'demo-user-1');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ===========================
 -- Storage 버킷 (옷 이미지)
@@ -152,14 +172,18 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('clothing-images', 'clothing-images', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Storage 정책: 인증된 사용자는 본인 폴더에만 업로드
-CREATE POLICY "storage: owner upload"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'clothing-images'
-    AND (auth.uid()::text = split_part(name, '/', 1) OR split_part(name, '/', 1) = 'demo-user-1')
-  );
+-- Storage 정책 (중복 실행 안전)
+DO $$ BEGIN
+  CREATE POLICY "storage: owner upload"
+    ON storage.objects FOR INSERT
+    WITH CHECK (
+      bucket_id = 'clothing-images'
+      AND (auth.uid()::text = split_part(name, '/', 1) OR split_part(name, '/', 1) = 'demo-user-1')
+    );
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE POLICY "storage: public read"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'clothing-images');
+DO $$ BEGIN
+  CREATE POLICY "storage: public read"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'clothing-images');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
