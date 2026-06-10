@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { trackEvent } from '../lib/analytics';
 import { AnimatePresence, motion } from 'framer-motion';
 import { analyzePose, initPoseLandmarker } from '../lib/bodyAnalysis';
 import { stripBackground } from '../lib/backgroundRemoval';
@@ -694,7 +695,11 @@ export function OnboardingPage() {
   });
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
 
-  const goNext = () => { setDir(1); setStep((s) => s + 1); };
+  const goNext = () => {
+    if (step === 0) trackEvent('onboard_start');
+    setDir(1);
+    setStep((s) => s + 1);
+  };
   const goBack = () => { setDir(-1); setStep((s) => Math.max(0, s - 1)); };
 
   const handleSelfieNext = (m: BodyMeasurements) => {

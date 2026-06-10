@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { trackEvent } from '../lib/analytics';
 import { TopBar } from '../components/shared/TopBar';
 import { ContextBadge } from '../components/outfit/ContextBadge';
 import { TryOnView } from '../components/outfit/TryOnView';
@@ -17,7 +18,7 @@ export function OutfitDetailPage() {
 
   useEffect(() => {
     fetchRecommendationById(id ?? 'outfit-1')
-      .then((data) => setOutfit(data))
+      .then((data) => { setOutfit(data); trackEvent('tryon_view'); })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -25,6 +26,7 @@ export function OutfitDetailPage() {
     if (!outfit) return;
     const saved = await toggleSavedOutfit('demo-user-1', outfit.id);
     setIsHearted(saved);
+    if (saved) trackEvent('outfit_saved');
   };
 
   if (loading || !outfit) {
