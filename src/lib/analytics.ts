@@ -1,5 +1,5 @@
 const APPS_SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbyEForEji45ZS24UaPokdz6CupPIQF3RJXQ_G0OrxjWkdDp49kIQD4BJl_mSRVen_AP-A/exec';
+  'https://script.google.com/macros/s/AKfycbwnmczRQRO0sCWrIJ48FLxPs7nNJKKgMZrkpSNj05BcKErn1RhHbDi43fLD9sLNxqKqlQ/exec';
 
 function getUV(): string {
   const key = 'closet_uv';
