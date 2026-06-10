@@ -1,11 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { HomePage } from './pages/HomePage';
 import { OutfitDetailPage } from './pages/OutfitDetailPage';
 import { RationalePage } from './pages/RationalePage';
 import { WardrobePage } from './pages/WardrobePage';
 import { SavedPage } from './pages/SavedPage';
+import { OnboardingPage } from './pages/OnboardingPage';
+import { PageTransition } from './components/shared/PageTransition';
 
-// 모바일 앱 컨테이너 — 최대 너비 390px로 중앙 정렬 (데스크톱 데모 시 폰 느낌)
 function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex justify-center" style={{ background: '#F0EBE0' }}>
@@ -16,17 +18,27 @@ function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+function AnimatedRoutes() {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+        <Route path="/outfit/:id" element={<PageTransition><OutfitDetailPage /></PageTransition>} />
+        <Route path="/outfit/:id/rationale" element={<PageTransition><RationalePage /></PageTransition>} />
+        <Route path="/wardrobe" element={<PageTransition><WardrobePage /></PageTransition>} />
+        <Route path="/saved" element={<PageTransition><SavedPage /></PageTransition>} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 export function App() {
   return (
     <BrowserRouter>
       <AppShell>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/outfit/:id" element={<OutfitDetailPage />} />
-          <Route path="/outfit/:id/rationale" element={<RationalePage />} />
-          <Route path="/wardrobe" element={<WardrobePage />} />
-          <Route path="/saved" element={<SavedPage />} />
-        </Routes>
+        <AnimatedRoutes />
       </AppShell>
     </BrowserRouter>
   );

@@ -1,0 +1,23 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA — 모든 경로를 index.html로 라우팅
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 환경 변수 설정 가이드 (Netlify 대시보드 → Site settings → Environment variables):
+#   VITE_SUPABASE_URL      = https://xxxxx.supabase.co
+#   VITE_SUPABASE_ANON_KEY = eyJ...
+# (REPLICATE_API_TOKEN, ANTHROPIC_API_KEY는 Supabase Edge Function secrets에만 — 프론트 노출 X)
+
+[context.production]
+  environment = { NODE_ENV = "production" }
+
+[context.deploy-preview]
+  environment = { NODE_ENV = "development" }
