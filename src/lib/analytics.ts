@@ -18,7 +18,12 @@ function getTimestamp(): string {
 }
 
 function getUtm(): string {
-  return new URLSearchParams(window.location.search).get('utm') ?? 'direct';
+  const fromUrl = new URLSearchParams(window.location.search).get('utm');
+  if (fromUrl) {
+    sessionStorage.setItem('closet_utm', fromUrl);
+    return fromUrl;
+  }
+  return sessionStorage.getItem('closet_utm') ?? 'direct';
 }
 
 // step 값: 'onboard_start' | 'tryon_view' | 'outfit_saved'

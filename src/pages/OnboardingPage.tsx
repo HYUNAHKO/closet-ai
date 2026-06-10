@@ -47,7 +47,10 @@ interface UploadedItem {
 // ─────────────────────────────────────────────────────────────
 
 // ── Step 0: 환영 화면 ─────────────────────────────────────────
-function StepWelcome({ onNext }: { onNext: () => void }) {
+const FREQ_OPTIONS = ['0-1', '2-3', '4-5', '6+'] as const;
+
+function StepWelcome({ onNext }: { onNext: (frequency: string) => void }) {
+  const [frequency, setFrequency] = useState('');
   return (
     <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-16 pb-10">
       <div className="flex-1 flex flex-col justify-center">
@@ -85,11 +88,31 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
         </div>
       </div>
 
+      {/* frequency 질문 */}
+      <div className="mb-6">
+        <p className="text-[13px] text-ink-muted mb-3">일주일에 몇 번 "뭐 입지?" 고민하세요?</p>
+        <div className="flex gap-2 flex-wrap">
+          {FREQ_OPTIONS.map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setFrequency(opt)}
+              className={`px-4 py-2 rounded-pill text-[13px] font-medium border transition-colors ${
+                frequency === opt
+                  ? 'bg-ink text-white border-ink'
+                  : 'bg-transparent text-ink-muted border-border'
+              }`}
+            >
+              주 {opt}회
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* CTA */}
       <div className="space-y-3">
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={onNext}
+          onClick={() => onNext(frequency)}
           className="w-full py-4 bg-ink text-white rounded-cta text-[15px] font-medium"
         >
           챌린지 시작하기
@@ -695,10 +718,12 @@ export function OnboardingPage() {
   });
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
 
-  const goNext = () => {
-    if (step === 0) trackEvent('onboard_start');
+  const goNext = () => { setDir(1); setStep((s) => s + 1); };
+
+  const handleWelcomeNext = (frequency: string) => {
+    trackEvent('onboard_start', frequency);
     setDir(1);
-    setStep((s) => s + 1);
+    setStep(1);
   };
   const goBack = () => { setDir(-1); setStep((s) => Math.max(0, s - 1)); };
 
@@ -737,7 +762,7 @@ export function OnboardingPage() {
           exit="exit"
           transition={{ duration: 0.25, ease: 'easeOut' }}
         >
-          {step === 0 && <StepWelcome onNext={goNext} />}
+          {step === 0 && <StepWelcome onNext={handleWelcomeNext} />}
           {step === 1 && <StepSelfie onNext={handleSelfieNext} />}
           {step === 2 && (
             <StepBodyConfirm initial={measurements} onNext={handleBodyConfirmNext} />
