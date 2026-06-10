@@ -16,8 +16,5 @@
 #   VITE_SUPABASE_ANON_KEY = eyJ...
 # (REPLICATE_API_TOKEN, ANTHROPIC_API_KEY는 Supabase Edge Function secrets에만 — 프론트 노출 X)
 
-[context.production]
-  environment = { NODE_ENV = "production" }
-
 [context.deploy-preview]
   environment = { NODE_ENV = "development" }
