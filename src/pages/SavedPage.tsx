@@ -9,6 +9,8 @@ import type { OutfitRecommendation } from '../types';
 function SavedOutfitCard({ outfit }: { outfit: OutfitRecommendation }) {
   const navigate = useNavigate();
   const contextLabel = outfit.context.schedule?.title ?? outfit.context.weather.condition;
+  // 본인이 생성한 try-on 우선, 없으면 프리캐시 demo 이미지
+  const displayUrl = localStorage.getItem(`closet_tryon_${outfit.id}`) ?? outfit.tryOnImageUrl;
 
   return (
     <div
@@ -20,9 +22,9 @@ function SavedOutfitCard({ outfit }: { outfit: OutfitRecommendation }) {
     >
       {/* 이미지 영역 */}
       <div className="relative w-full aspect-[3/4] flex items-center justify-center bg-cream">
-        {outfit.tryOnImageUrl ? (
+        {displayUrl ? (
           <img
-            src={outfit.tryOnImageUrl}
+            src={displayUrl}
             alt="저장된 코디"
             className="w-full h-full object-cover"
           />

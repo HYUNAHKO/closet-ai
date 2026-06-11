@@ -14,6 +14,8 @@ import type { OutfitRecommendation } from '../types';
 
 type LiveStatus = 'idle' | 'loading' | 'ok' | 'limit_reached' | 'error';
 
+const tryOnCacheKey = (outfitId: string) => `closet_tryon_${outfitId}`;
+
 export function OutfitDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -41,9 +43,16 @@ export function OutfitDetailPage() {
   }, [id]);
 
   // 신규 사용자 라이브 try-on (자기 사진이 있을 때만)
-  // 데모 계정(personUrl 없음)은 프리캐시된 tryOnImageUrl을 그대로 사용
   useEffect(() => {
     if (!outfit || !personUrl) return;
+
+    // 이 디바이스에서 이미 생성한 결과가 있으면 즉시 표시
+    const cached = localStorage.getItem(tryOnCacheKey(outfit.id));
+    if (cached) {
+      setLiveTryOnUrl(cached);
+      setLiveStatus('ok');
+      return;
+    }
 
     const garment = outfit.items.find((item) => item.imageUrl);
     if (!garment) return;
@@ -64,9 +73,15 @@ export function OutfitDetailPage() {
     }).then((outcome) => {
       if (cancelled) return;
       if (outcome.status === 'ok' && outcome.imageUrl) {
+        localStorage.setItem(tryOnCacheKey(outfit.id), outcome.imageUrl);
         setLiveTryOnUrl(outcome.imageUrl);
+        setLiveStatus('ok');
+      } else if (outcome.status === 'limit_reached') {
+        setLiveStatus('limit_reached');
+      } else {
+        // error → 에러 메시지 없이 프리캐시 demo 이미지로 조용히 폴백
+        setLiveStatus('error');
       }
-      setLiveStatus(outcome.status);
     });
 
     return () => { cancelled = true; };
@@ -94,16 +109,18 @@ export function OutfitDetailPage() {
     );
   }
 
-  const fallback =
-    liveStatus === 'limit_reached' ? 'limit' :
-    liveStatus === 'error' ? 'error' :
-    undefined;
+  // 신규 사용자: 라이브 결과 → 에러 시 프리캐시 폴백 → 로딩 중엔 undefined
+  // 데모 계정: 프리캐시 이미지 (라이브 호출 없음)
+  const displayUrl = (() => {
+    if (!personUrl) return outfit.tryOnImageUrl;
+    if (liveStatus === 'loading') return undefined;
+    if (liveStatus === 'ok' && liveTryOnUrl) return liveTryOnUrl;
+    if (liveStatus === 'limit_reached') return undefined;
+    // error / idle → 프리캐시 폴백
+    return outfit.tryOnImageUrl;
+  })();
 
-  // 신규 사용자: 라이브 try-on 결과 표시
-  // 데모 계정: 프리캐시 이미지 표시 (라이브 호출 없음)
-  const displayUrl = personUrl
-    ? (liveTryOnUrl ?? undefined)
-    : outfit.tryOnImageUrl;
+  const fallback = liveStatus === 'limit_reached' ? 'limit' : undefined;
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-cream">
