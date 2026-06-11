@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trackEvent } from '../lib/analytics';
+import { fetchClothingItems } from '../lib/api/clothing';
 import { AnimatePresence, motion } from 'framer-motion';
 import { analyzePose, initPoseLandmarker } from '../lib/bodyAnalysis';
 import { stripBackground } from '../lib/backgroundRemoval';
@@ -207,18 +208,44 @@ function StepSelfie({ onNext }: StepSelfieProps) {
             )}
           </div>
         ) : (
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="w-[200px] h-[280px] rounded-[20px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 text-ink-hint"
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10" />
-              <circle cx="12" cy="10" r="3" />
-              <path d="M6.17 18.74A6 6 0 0 1 12 16a6 6 0 0 1 5.83 2.74" />
-            </svg>
-            <span className="text-[13px]">사진 선택</span>
-          </button>
+          <div className="flex gap-4 items-start">
+            {/* 예시 포즈 */}
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-[88px] h-[120px] rounded-[14px] bg-oat/60 border border-border flex items-center justify-center">
+                <svg width="40" height="80" viewBox="0 0 40 80" fill="none">
+                  <circle cx="20" cy="9" r="7" fill="#2A2A28" opacity="0.15"/>
+                  <line x1="20" y1="16" x2="20" y2="48" stroke="#2A2A28" strokeWidth="3" strokeLinecap="round" opacity="0.2"/>
+                  <line x1="20" y1="24" x2="6" y2="36" stroke="#2A2A28" strokeWidth="2.5" strokeLinecap="round" opacity="0.2"/>
+                  <line x1="20" y1="24" x2="34" y2="36" stroke="#2A2A28" strokeWidth="2.5" strokeLinecap="round" opacity="0.2"/>
+                  <line x1="20" y1="48" x2="13" y2="70" stroke="#2A2A28" strokeWidth="2.5" strokeLinecap="round" opacity="0.2"/>
+                  <line x1="20" y1="48" x2="27" y2="70" stroke="#2A2A28" strokeWidth="2.5" strokeLinecap="round" opacity="0.2"/>
+                </svg>
+              </div>
+              <p className="text-[10px] text-ink-hint text-center leading-tight">정면 전신<br />배경 단순하게</p>
+            </div>
+
+            {/* 업로드 버튼 */}
+            <button
+              onClick={() => fileRef.current?.click()}
+              className="w-[200px] h-[280px] rounded-[20px] border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 text-ink-hint"
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="10" r="3" />
+                <path d="M6.17 18.74A6 6 0 0 1 12 16a6 6 0 0 1 5.83 2.74" />
+              </svg>
+              <span className="text-[13px]">사진 선택</span>
+            </button>
+          </div>
         )}
+
+        {/* 프라이버시 안심 문구 */}
+        <div className="flex items-center gap-1.5 mt-2">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-ink-hint flex-shrink-0">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <p className="text-[11px] text-ink-hint">본인만 볼 수 있게 저장돼요</p>
+        </div>
 
         {status === 'error' && (
           <p className="text-[12px] text-brand text-center">
@@ -374,6 +401,36 @@ const MAX_CLOTHES = 10;
 function StepClothes({ onNext }: StepClothesProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<UploadedItem[]>([]);
+  const [loadingDemo, setLoadingDemo] = useState(false);
+
+  const loadDemoClothes = async () => {
+    setLoadingDemo(true);
+    try {
+      const clothes = await fetchClothingItems('demo-user-1');
+      const candidates = clothes.filter((c) => c.isolatedImageUrl);
+      const selected = (candidates.length >= 5 ? candidates : clothes).slice(0, 8);
+      const dummyFile = new File([''], 'demo.jpg', { type: 'image/jpeg' });
+      setItems(selected.map((c) => ({
+        file: dummyFile,
+        previewUrl: c.isolatedImageUrl || c.imageUrl,
+        isolatedUrl: c.isolatedImageUrl || c.imageUrl,
+        storedUrl: c.imageUrl,
+        classification: {
+          ownerId: 'demo-user-1',
+          category: c.category,
+          label: c.label,
+          imageUrl: c.imageUrl,
+          isolatedImageUrl: c.isolatedImageUrl,
+          colorHex: c.colorHex,
+          attributes: c.attributes,
+        },
+        bgStatus: 'done' as const,
+        classifyStatus: 'done' as const,
+      })));
+    } finally {
+      setLoadingDemo(false);
+    }
+  };
 
   const processFile = useCallback(async (file: File) => {
     const previewUrl = URL.createObjectURL(file);
@@ -474,9 +531,26 @@ function StepClothes({ onNext }: StepClothesProps) {
   return (
     <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-14 pb-10">
       <h2 className="font-serif text-[24px] text-ink mb-1">자주 입는 옷 10벌</h2>
-      <p className="text-[13px] text-ink-muted mb-2">
+      <p className="text-[13px] text-ink-muted mb-3">
         전체 옷장 X — 가장 자주 입는 것만
       </p>
+
+      {items.length === 0 && (
+        <button
+          onClick={loadDemoClothes}
+          disabled={loadingDemo}
+          className="flex items-center gap-2 px-4 py-2.5 mb-4 rounded-pill border border-brand text-brand text-[13px] font-medium disabled:opacity-50 self-start"
+        >
+          {loadingDemo ? (
+            <span className="w-3 h-3 border border-brand border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/>
+            </svg>
+          )}
+          예시 옷으로 시작
+        </button>
+      )}
       <div className="flex items-center gap-2 mb-6">
         <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
           <div

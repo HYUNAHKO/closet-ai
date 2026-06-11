@@ -6,6 +6,7 @@ import { ContextBadge } from '../components/outfit/ContextBadge';
 import { TryOnView } from '../components/outfit/TryOnView';
 import { OutfitItemsStrip } from '../components/outfit/OutfitItemsStrip';
 import { RationaleCTA } from '../components/outfit/RationaleCTA';
+import { EmailCaptureModal } from '../components/shared/EmailCaptureModal';
 import { fetchRecommendationById, toggleSavedOutfit } from '../lib/api/recommendations';
 import type { OutfitRecommendation } from '../types';
 
@@ -15,10 +16,19 @@ export function OutfitDetailPage() {
   const [outfit, setOutfit] = useState<OutfitRecommendation | null>(null);
   const [isHearted, setIsHearted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showEmailModal, setShowEmailModal] = useState(false);
 
   useEffect(() => {
     fetchRecommendationById(id ?? 'outfit-1')
-      .then((data) => { setOutfit(data); trackEvent('tryon_view'); })
+      .then((data) => {
+        setOutfit(data);
+        trackEvent('tryon_view');
+        // 세션당 1회 이메일 캡처 모달 표시
+        if (!sessionStorage.getItem('email_modal_shown')) {
+          setTimeout(() => setShowEmailModal(true), 1200);
+          sessionStorage.setItem('email_modal_shown', '1');
+        }
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -26,7 +36,13 @@ export function OutfitDetailPage() {
     if (!outfit) return;
     const saved = await toggleSavedOutfit('demo-user-1', outfit.id);
     setIsHearted(saved);
-    if (saved) trackEvent('outfit_saved');
+    if (saved) {
+      trackEvent('outfit_saved');
+      if (!sessionStorage.getItem('email_modal_shown')) {
+        setShowEmailModal(true);
+        sessionStorage.setItem('email_modal_shown', '1');
+      }
+    }
   };
 
   if (loading || !outfit) {
@@ -46,19 +62,11 @@ export function OutfitDetailPage() {
         onHeartClick={handleHeartClick}
       />
 
-      {/* 체형 기준 배지 — 차별점 명시 장치 */}
       <ContextBadge context={outfit.context} />
-
-      {/* 핵심: 가상 시착 이미지 */}
       <TryOnView tryOnImageUrl={outfit.tryOnImageUrl} />
-
-      {/* 아이템 썸네일 행 */}
       <OutfitItemsStrip items={outfit.items} />
-
-      {/* 왜 이 코디? CTA */}
       <RationaleCTA outfitId={outfit.id} />
 
-      {/* 보조 액션 */}
       <div className="flex gap-1 px-[18px] py-2.5 pb-[18px] justify-center">
         <button
           onClick={() => navigate('/')}
@@ -74,6 +82,12 @@ export function OutfitDetailPage() {
           옷장에서 고르기
         </button>
       </div>
+
+      <EmailCaptureModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        frequency={sessionStorage.getItem('closet_utm') ?? ''}
+      />
     </div>
   );
 }

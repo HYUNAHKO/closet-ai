@@ -26,7 +26,7 @@ function getUtm(): string {
   return sessionStorage.getItem('closet_utm') ?? 'direct';
 }
 
-// step 값: 'onboard_start' | 'tryon_view' | 'outfit_saved'
+// step 값: 'visit' | 'onboard_start' | 'tryon_view' | 'outfit_saved'
 export function trackEvent(step: string, frequency = ''): void {
   const data = JSON.stringify({
     id: getUV(),
@@ -36,8 +36,20 @@ export function trackEvent(step: string, frequency = ''): void {
     frequency,
   });
 
-  // fire-and-forget, 실패해도 앱 동작에 영향 없음
   fetch(`${APPS_SCRIPT_URL}?action=insert&table=events&data=${encodeURIComponent(data)}`, {
+    mode: 'no-cors',
+  }).catch(() => {});
+}
+
+export function submitEmailCapture(email: string, bodyType: string, frequency: string): void {
+  const data = JSON.stringify({
+    id: getUV(),
+    email,
+    frequency,
+    body_type: bodyType,
+    advice: '',
+  });
+  fetch(`${APPS_SCRIPT_URL}?action=insert&table=tab_final&data=${encodeURIComponent(data)}`, {
     mode: 'no-cors',
   }).catch(() => {});
 }

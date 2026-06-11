@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TryOnSilhouette } from '../home/TryOnSilhouette';
 
@@ -7,23 +8,48 @@ interface TryOnViewProps {
 }
 
 export function TryOnView({ tryOnImageUrl, loading }: TryOnViewProps) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!loading) { setElapsed(0); return; }
+    setElapsed(0);
+    const t = setInterval(() => setElapsed((e) => Math.min(e + 1, 25)), 1000);
+    return () => clearInterval(t);
+  }, [loading]);
+
   if (loading) {
+    const remaining = Math.max(20 - elapsed, 0);
+    const progress = Math.min((elapsed / 20) * 100, 100);
     return (
-      <div className="flex justify-center pt-2">
-        <div className="w-[260px] h-[360px] rounded-[16px] overflow-hidden relative">
+      <div className="flex flex-col items-center pt-2 gap-4">
+        <div className="w-[260px] h-[360px] rounded-[16px] overflow-hidden relative bg-border">
           <motion.div
-            className="absolute inset-0 bg-border rounded-[16px]"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(135deg, #EFE4D3 0%, #E8DFCE 100%)' }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
           />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <motion.div
-              className="w-10 h-10 rounded-full border-2 border-ink-muted"
-              animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 1.4, repeat: Infinity }}
+              className="w-12 h-12 rounded-full border-2 border-brand border-t-transparent"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
             />
-            <p className="text-[12px] text-ink-muted">코디 생성 중…</p>
+            <p className="text-[13px] text-ink-muted font-medium">AI가 입혀보는 중…</p>
+            <p className="text-[11px] text-ink-hint">약 {remaining}초</p>
           </div>
+        </div>
+        <div className="w-[260px] space-y-1.5">
+          <div className="h-1 bg-border rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-brand rounded-full"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
+          </div>
+          <p className="text-[10px] text-ink-hint text-center">
+            체형에 맞춰 코디를 합성하고 있어요
+          </p>
         </div>
       </div>
     );

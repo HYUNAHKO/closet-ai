@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { trackEvent } from './lib/analytics';
 import { HomePage } from './pages/HomePage';
 import { OutfitDetailPage } from './pages/OutfitDetailPage';
 import { RationalePage } from './pages/RationalePage';
@@ -35,6 +37,13 @@ function AnimatedRoutes() {
 }
 
 export function App() {
+  useEffect(() => {
+    if (!sessionStorage.getItem('visited')) {
+      trackEvent('visit');
+      sessionStorage.setItem('visited', '1');
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <AppShell>
