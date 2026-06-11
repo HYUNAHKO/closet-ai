@@ -1,4 +1,5 @@
 import { supabase, isSupabaseAvailable } from '../supabase';
+import { canTryOn, incrementTryOnCount } from '../tryOnLimit';
 
 interface TryOnParams {
   outfitId: string;
@@ -11,12 +12,23 @@ interface TryOnResult {
   imageUrl: string;
 }
 
-/** tryon Edge Function을 호출해 가상 시착 이미지를 생성하고 Storage URL을 반환. */
-export async function generateTryOn(params: TryOnParams): Promise<string | null> {
+export type TryOnStatus = 'ok' | 'limit_reached' | 'error';
+
+export interface TryOnOutcome {
+  status: TryOnStatus;
+  imageUrl?: string;
+}
+
+export async function generateTryOn(params: TryOnParams): Promise<TryOnOutcome> {
   if (!isSupabaseAvailable) {
-    console.warn('[generateTryOn] Supabase not available — skipping');
-    return null;
+    return { status: 'error' };
   }
+
+  if (!canTryOn()) {
+    return { status: 'limit_reached' };
+  }
+
+  incrementTryOnCount();
 
   try {
     const { data, error } = await supabase!.functions.invoke<TryOnResult>('tryon', {
@@ -29,13 +41,13 @@ export async function generateTryOn(params: TryOnParams): Promise<string | null>
     });
 
     if (error || !data?.imageUrl) {
-      console.error('[generateTryOn] error:', error);
-      return null;
+      console.warn('[generateTryOn] failed:', error);
+      return { status: 'error' };
     }
 
-    return data.imageUrl;
+    return { status: 'ok', imageUrl: data.imageUrl };
   } catch (err) {
-    console.error('[generateTryOn] unexpected error:', err);
-    return null;
+    console.warn('[generateTryOn] unexpected error:', err);
+    return { status: 'error' };
   }
 }

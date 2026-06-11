@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TryOnSilhouette } from '../home/TryOnSilhouette';
+import { TRYON_LIMIT } from '../../lib/tryOnLimit';
 
 interface TryOnViewProps {
   tryOnImageUrl?: string;
   loading?: boolean;
+  fallback?: 'limit' | 'error';
 }
 
-export function TryOnView({ tryOnImageUrl, loading }: TryOnViewProps) {
+export function TryOnView({ tryOnImageUrl, loading, fallback }: TryOnViewProps) {
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -50,6 +52,37 @@ export function TryOnView({ tryOnImageUrl, loading }: TryOnViewProps) {
           <p className="text-[10px] text-ink-hint text-center">
             체형에 맞춰 코디를 합성하고 있어요
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fallback) {
+    return (
+      <div className="flex flex-col items-center pt-2 gap-3">
+        <div className="opacity-40">
+          <TryOnSilhouette variant="detail" />
+        </div>
+        <div className="text-center px-6">
+          {fallback === 'limit' ? (
+            <>
+              <p className="text-[13px] text-ink-muted font-medium">
+                무료 체험 {TRYON_LIMIT}회를 모두 사용했어요
+              </p>
+              <p className="text-[11px] text-ink-hint mt-1">
+                새 세션에서 다시 체험하거나, 코디를 저장해두세요
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-[13px] text-ink-muted font-medium">
+                지금 입어보기가 어려워요
+              </p>
+              <p className="text-[11px] text-ink-hint mt-1">
+                잠시 후 다시 시도해주세요
+              </p>
+            </>
+          )}
         </div>
       </div>
     );
