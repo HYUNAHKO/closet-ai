@@ -5,7 +5,7 @@ import { fetchClothingItems } from '../lib/api/clothing';
 import { AnimatePresence, motion } from 'framer-motion';
 import { analyzePose, initPoseLandmarker } from '../lib/bodyAnalysis';
 import { stripBackground } from '../lib/backgroundRemoval';
-import { uploadClothingImage, addClothingItem } from '../lib/api/clothing';
+import { uploadClothingImage, addClothingItem, uploadPersonImage } from '../lib/api/clothing';
 import { classifyClothing } from '../lib/api/vision';
 import { isSupabaseAvailable } from '../lib/supabase';
 import type { ClothingItem, BodyMeasurements } from '../types';
@@ -41,6 +41,7 @@ interface UploadedItem {
   classification: Partial<Omit<ClothingItem, 'id' | 'wearCount' | 'createdAt'>> | null;
   bgStatus: 'pending' | 'processing' | 'done' | 'error';
   classifyStatus: 'pending' | 'classifying' | 'done' | 'error';
+  isDemoItem?: boolean;     // 예시 옷 — insert 없이 기존 항목 참조만
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -153,6 +154,11 @@ function StepSelfie({ onNext }: StepSelfieProps) {
     const objectUrl = URL.createObjectURL(file);
     setPreview(objectUrl);
     setStatus('loading-model');
+
+    // 전신 사진을 Storage에 백그라운드 업로드 → OutfitDetailPage 라이브 try-on용
+    void uploadPersonImage(file).then((url) => {
+      if (url) localStorage.setItem('closet_person_url', url);
+    });
 
     try {
       // MediaPipe 초기화 (첫 호출 시 CDN에서 WASM 로드)
@@ -435,6 +441,7 @@ function StepClothes({ onNext }: StepClothesProps) {
         },
         bgStatus: 'done' as const,
         classifyStatus: 'done' as const,
+        isDemoItem: true,
       })));
     } finally {
       setLoadingDemo(false);
@@ -670,6 +677,8 @@ function StepReview({ items, onDone }: StepReviewProps) {
     setSaving(true);
     if (isSupabaseAvailable) {
       const promises = items.map((item) => {
+        // 예시 옷은 기존 demo 항목을 참조만 — 중복 insert 방지
+        if (item.isDemoItem) return Promise.resolve(null);
         if (item.classification && item.storedUrl) {
           return addClothingItem({
             ownerId: 'demo-user-1',
@@ -826,7 +835,8 @@ export function OnboardingPage() {
   };
 
   const handleDone = () => {
-    navigate('/', { replace: true });
+    // 첫 코디 상세로 바로 이동 — try-on 임팩트를 즉시 보여주기 위해
+    navigate('/outfit/outfit-1', { replace: true });
   };
 
   return (

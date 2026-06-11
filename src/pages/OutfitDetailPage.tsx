@@ -10,10 +10,7 @@ import { EmailCaptureModal } from '../components/shared/EmailCaptureModal';
 import { fetchRecommendationById, toggleSavedOutfit } from '../lib/api/recommendations';
 import { generateTryOn } from '../lib/api/virtualTryOn';
 import { canTryOn } from '../lib/tryOnLimit';
-import { isSupabaseAvailable } from '../lib/supabase';
 import type { OutfitRecommendation } from '../types';
-
-const DEMO_PERSON_URL = import.meta.env.VITE_DEMO_PERSON_IMAGE_URL as string | undefined;
 
 type LiveStatus = 'idle' | 'loading' | 'ok' | 'limit_reached' | 'error';
 
@@ -26,6 +23,9 @@ export function OutfitDetailPage() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [liveTryOnUrl, setLiveTryOnUrl] = useState<string | null>(null);
   const [liveStatus, setLiveStatus] = useState<LiveStatus>('idle');
+
+  // 온보딩에서 업로드한 전신 사진 URL (없으면 데모 계정 → 프리캐시 사용)
+  const personUrl = localStorage.getItem('closet_person_url');
 
   useEffect(() => {
     fetchRecommendationById(id ?? 'outfit-1')
@@ -40,9 +40,10 @@ export function OutfitDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // 프리캐시 없을 때 라이브 try-on 시도 (세션당 최대 3회)
+  // 신규 사용자 라이브 try-on (자기 사진이 있을 때만)
+  // 데모 계정(personUrl 없음)은 프리캐시된 tryOnImageUrl을 그대로 사용
   useEffect(() => {
-    if (!outfit || outfit.tryOnImageUrl || !isSupabaseAvailable || !DEMO_PERSON_URL) return;
+    if (!outfit || !personUrl) return;
 
     const garment = outfit.items.find((item) => item.imageUrl);
     if (!garment) return;
@@ -57,7 +58,7 @@ export function OutfitDetailPage() {
 
     generateTryOn({
       outfitId: outfit.id,
-      personImageUrl: DEMO_PERSON_URL,
+      personImageUrl: personUrl,
       garmentImageUrl: garment.imageUrl,
       garmentDescription: garment.label,
     }).then((outcome) => {
@@ -69,7 +70,7 @@ export function OutfitDetailPage() {
     });
 
     return () => { cancelled = true; };
-  }, [outfit]);
+  }, [outfit, personUrl]);
 
   const handleHeartClick = async () => {
     if (!outfit) return;
@@ -98,6 +99,12 @@ export function OutfitDetailPage() {
     liveStatus === 'error' ? 'error' :
     undefined;
 
+  // 신규 사용자: 라이브 try-on 결과 표시
+  // 데모 계정: 프리캐시 이미지 표시 (라이브 호출 없음)
+  const displayUrl = personUrl
+    ? (liveTryOnUrl ?? undefined)
+    : outfit.tryOnImageUrl;
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-cream">
       <TopBar
@@ -108,7 +115,7 @@ export function OutfitDetailPage() {
 
       <ContextBadge context={outfit.context} />
       <TryOnView
-        tryOnImageUrl={liveTryOnUrl ?? outfit.tryOnImageUrl}
+        tryOnImageUrl={displayUrl}
         loading={liveStatus === 'loading'}
         fallback={fallback}
       />
