@@ -4,13 +4,14 @@ import { TopBar } from '../components/shared/TopBar';
 import { BottomNav } from '../components/shared/BottomNav';
 import { fetchSavedOutfits } from '../lib/api/recommendations';
 import { TryOnSilhouette } from '../components/home/TryOnSilhouette';
+import { tryOnDisplayKey } from '../lib/sessionId';
 import type { OutfitRecommendation } from '../types';
 
 function SavedOutfitCard({ outfit }: { outfit: OutfitRecommendation }) {
   const navigate = useNavigate();
   const contextLabel = outfit.context.schedule?.title ?? outfit.context.weather.condition;
-  // 본인이 생성한 try-on 우선, 없으면 프리캐시 demo 이미지
-  const displayUrl = localStorage.getItem(`closet_tryon_${outfit.id}`) ?? outfit.tryOnImageUrl;
+  // 본인이 생성한 try-on 우선 (최근 성공 캐시), 없으면 프리캐시 demo 이미지
+  const displayUrl = localStorage.getItem(tryOnDisplayKey(outfit.id)) ?? outfit.tryOnImageUrl;
 
   return (
     <div

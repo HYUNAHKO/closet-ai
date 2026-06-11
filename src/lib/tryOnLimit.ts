@@ -1,5 +1,5 @@
 const SESSION_KEY = 'closet_tryon_count';
-export const TRYON_LIMIT = 3;
+export const TRYON_LIMIT = 5;
 
 export function getTryOnCount(): number {
   return Number(sessionStorage.getItem(SESSION_KEY) ?? 0);

@@ -6,6 +6,8 @@ interface TryOnParams {
   personImageUrl: string;
   garmentImageUrl: string;
   garmentDescription?: string;
+  sessionId?: string;  // 있으면 Edge Function이 user 전용 경로에 저장
+  itemId?: string;     // 아이템별 Storage 경로 분리용
 }
 
 interface TryOnResult {
@@ -30,6 +32,12 @@ export async function generateTryOn(params: TryOnParams): Promise<TryOnOutcome> 
 
   incrementTryOnCount();
 
+  console.info('[generateTryOn] →', {
+    outfitId: params.outfitId,
+    personImageUrl: params.personImageUrl,
+    garmentImageUrl: params.garmentImageUrl,
+  });
+
   try {
     const { data, error } = await supabase!.functions.invoke<TryOnResult>('tryon', {
       body: {
@@ -37,14 +45,28 @@ export async function generateTryOn(params: TryOnParams): Promise<TryOnOutcome> 
         garmentImageUrl: params.garmentImageUrl,
         garmentDescription: params.garmentDescription,
         outfitId: params.outfitId,
+        sessionId: params.sessionId,
+        itemId: params.itemId,
       },
     });
 
-    if (error || !data?.imageUrl) {
-      console.warn('[generateTryOn] failed:', error);
+    if (error) {
+      // FunctionsHttpError 실제 body 추출 (Replicate 오류 메시지 포함)
+      let detail = String(error);
+      try {
+        const body = await (error as { context?: Response }).context?.json();
+        detail = JSON.stringify(body);
+      } catch { /* ignore */ }
+      console.warn('[generateTryOn] Edge Function error:', detail);
       return { status: 'error' };
     }
 
+    if (!data?.imageUrl) {
+      console.warn('[generateTryOn] no imageUrl in response:', JSON.stringify(data));
+      return { status: 'error' };
+    }
+
+    console.info('[generateTryOn] success →', data.imageUrl);
     return { status: 'ok', imageUrl: data.imageUrl };
   } catch (err) {
     console.warn('[generateTryOn] unexpected error:', err);

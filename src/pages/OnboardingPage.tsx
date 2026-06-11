@@ -8,6 +8,7 @@ import { stripBackground } from '../lib/backgroundRemoval';
 import { uploadClothingImage, addClothingItem, uploadPersonImage } from '../lib/api/clothing';
 import { classifyClothing } from '../lib/api/vision';
 import { isSupabaseAvailable } from '../lib/supabase';
+import { getSessionId, resetSession } from '../lib/sessionId';
 import type { ClothingItem, BodyMeasurements } from '../types';
 
 // ── 공통 상수 ─────────────────────────────────────────────────
@@ -156,8 +157,14 @@ function StepSelfie({ onNext }: StepSelfieProps) {
     setStatus('loading-model');
 
     // 전신 사진을 Storage에 백그라운드 업로드 → OutfitDetailPage 라이브 try-on용
-    void uploadPersonImage(file).then((url) => {
-      if (url) localStorage.setItem('closet_person_url', url);
+    // sessionId별 경로 → 동시 사용자끼리 파일 충돌 없음
+    void uploadPersonImage(getSessionId(), file).then((url) => {
+      if (url) {
+        localStorage.setItem('closet_person_url', url);
+        console.info('[onboarding] person image stored:', url);
+      } else {
+        console.warn('[onboarding] person image upload failed — try-on will use demo fallback');
+      }
     });
 
     try {
@@ -255,11 +262,18 @@ function StepSelfie({ onNext }: StepSelfieProps) {
         )}
 
         {/* 프라이버시 안심 문구 */}
-        <div className="flex items-center gap-1.5 mt-2">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-ink-hint flex-shrink-0">
-            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          <p className="text-[11px] text-ink-hint">본인만 볼 수 있게 저장돼요</p>
+        <div className="w-full bg-oat/40 rounded-[14px] border border-border-light px-4 py-3 mt-2 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-ink-hint flex-shrink-0">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <p className="text-[11px] text-ink-hint">본인만 볼 수 있게 저장돼요</p>
+          </div>
+          <p className="text-[11px] text-ink-muted leading-relaxed">
+            얼굴이 부담되면 가리거나 모자이크해도 괜찮아요 — AI는 체형 기준으로 옷을 입혀봐서 결과에 영향 없어요.
+            <br />
+            <span className="text-ink-hint">단, 머리·어깨 윤곽은 남아 있어야 해요 (체형 측정에 필요해요).</span>
+          </p>
         </div>
 
         {status === 'error' && (
@@ -547,8 +561,11 @@ function StepClothes({ onNext }: StepClothesProps) {
   return (
     <StepContainer>
       <h2 className="font-serif text-[24px] leading-normal text-ink mb-1">자주 입는 옷 10벌</h2>
-      <p className="text-[13px] text-ink-muted mb-3">
+      <p className="text-[13px] text-ink-muted mb-1">
         전체 옷장 X — 가장 자주 입는 것만
+      </p>
+      <p className="text-[11px] text-ink-hint mb-3">
+        등록한 상의·하의를 골라 네 사진에 입혀봐요. 가방·신발은 코디 참고용이에요.
       </p>
 
       {items.length === 0 && (
@@ -814,6 +831,8 @@ export function OnboardingPage() {
 
   const handleWelcomeNext = (frequency: string) => {
     trackEvent('onboard_start', frequency);
+    // 새 사용자 시작 → 이전 세션 데이터 초기화 (stale person URL, 이전 캐시 무효화)
+    resetSession();
     setDir(1);
     setStep(1);
   };

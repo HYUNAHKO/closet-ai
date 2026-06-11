@@ -121,19 +121,19 @@ export async function incrementWearCount(itemId: string): Promise<void> {
 }
 
 // ── 전신 사진 Storage 업로드 (OutfitDetailPage 라이브 try-on용) ──
-export async function uploadPersonImage(file: File): Promise<string | null> {
+// sessionId별 경로 → 동시 사용자끼리 파일 덮어쓰기 없음
+// path 첫 세그먼트 = 'demo-user-1' → Storage INSERT RLS 통과 (anon OK)
+export async function uploadPersonImage(sessionId: string, file: File): Promise<string | null> {
   if (!isSupabaseAvailable) return null;
 
-  const ext = file.name.split('.').pop() ?? 'jpg';
-  // RLS: first segment = 'demo-user-1' 고정 (현재 Storage 정책 준수)
-  const path = `demo-user-1/person.${ext}`;
+  const path = `demo-user-1/persons/${sessionId}.jpg`;
 
   const { error } = await supabase!.storage
     .from('clothing-images')
     .upload(path, file, { contentType: file.type, upsert: true });
 
   if (error) {
-    console.warn('[uploadPersonImage] error:', error);
+    console.warn('[uploadPersonImage] upload failed:', error.message, '| path:', path);
     return null;
   }
 
@@ -141,6 +141,7 @@ export async function uploadPersonImage(file: File): Promise<string | null> {
     .from('clothing-images')
     .getPublicUrl(path);
 
+  console.info('[uploadPersonImage] OK →', publicUrl);
   return publicUrl;
 }
 

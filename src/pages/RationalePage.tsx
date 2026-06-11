@@ -4,7 +4,10 @@ import { TopBar } from '../components/shared/TopBar';
 import { OutfitMiniReference } from '../components/rationale/OutfitMiniReference';
 import { ReasoningBlock } from '../components/rationale/ReasoningBlock';
 import { fetchRecommendationById, toggleSavedOutfit } from '../lib/api/recommendations';
-import type { OutfitRecommendation } from '../types';
+import { tryOnDisplayKey } from '../lib/sessionId';
+import type { OutfitRecommendation, ClothingItem } from '../types';
+
+const HERO_PRIORITY: ClothingItem['category'][] = ['top', 'outerwear', 'dress', 'bottom'];
 
 export function RationalePage() {
   const { id } = useParams<{ id: string }>();
@@ -41,12 +44,28 @@ export function RationalePage() {
 
   const { rationale, heroStatement } = outfit;
 
+  // 사용자 본인 try-on이 있으면 우선 표시, 없으면 프리캐시 fallback
+  const userTryOnUrl = localStorage.getItem(tryOnDisplayKey(outfit.id));
+  const displayUrl = userTryOnUrl ?? outfit.tryOnImageUrl;
+
+  // 상세 페이지와 동일한 hero 우선순위로 어떤 옷을 입었는지 특정
+  const heroItem = userTryOnUrl
+    ? HERO_PRIORITY.reduce<ClothingItem | null>((found, cat) => {
+        if (found) return found;
+        return outfit.items.find((i) => i.category === cat && i.imageUrl) ?? null;
+      }, null)
+    : null; // 프리캐시(데모)면 라벨 불필요
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-cream">
       <TopBar variant="rationale" />
 
       {/* 코디 미니 레퍼런스 */}
-      <OutfitMiniReference items={outfit.items} tryOnImageUrl={outfit.tryOnImageUrl} />
+      <OutfitMiniReference
+        items={outfit.items}
+        tryOnImageUrl={displayUrl}
+        heroItem={heroItem}
+      />
 
       {/* 에디토리얼 히어로 문장 */}
       <div className="px-[22px] pt-2">

@@ -7,6 +7,8 @@ interface TryOnBody {
   garmentImageUrl: string;
   garmentDescription?: string;
   outfitId?: string;
+  sessionId?: string; // 있으면 사용자 전용 경로 / 없으면 precache 경로
+  itemId?: string;
 }
 
 const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
@@ -27,8 +29,8 @@ serve(async (req: Request) => {
 
   try {
     const body: TryOnBody = await req.json();
-    const { personImageUrl, garmentImageUrl, garmentDescription = 'clothing item', outfitId } = body;
-    console.log('[tryon] inputs:', { personImageUrl, garmentImageUrl, outfitId });
+    const { personImageUrl, garmentImageUrl, garmentDescription = 'clothing item', outfitId, sessionId, itemId } = body;
+    console.log('[tryon] inputs:', { personImageUrl, garmentImageUrl, outfitId, sessionId: sessionId ? '[set]' : '[none]', itemId });
 
     // 1. IDM-VTON 최신 버전 해시 조회 (community 모델은 /v1/predictions + version 해시 방식 사용)
     console.log('[tryon] step 1: fetching versions');
@@ -106,7 +108,14 @@ serve(async (req: Request) => {
     const imageBuffer = await imageRes.arrayBuffer();
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const storagePath = `tryon/${outfitId ?? `temp-${Date.now()}`}.png`;
+
+    // sessionId 있음 = 실제 사용자 → 전용 경로 (demo precache 절대 덮어쓰지 않음)
+    // sessionId 없음 = precache 스크립트 → 기존 tryon/{outfitId}.png 경로
+    const storagePath = sessionId
+      ? `tryon/users/${sessionId}/${outfitId ?? 'temp'}_${itemId ?? 'item'}.png`
+      : `tryon/${outfitId ?? `temp-${Date.now()}`}.png`;
+
+    console.log('[tryon] storing to:', storagePath);
 
     const { error: uploadError } = await supabase.storage
       .from('clothing-images')
@@ -118,8 +127,9 @@ serve(async (req: Request) => {
       .from('clothing-images')
       .getPublicUrl(storagePath);
 
-    // 4. DB의 try_on_image_url 업데이트 (outfitId 있을 때만)
-    if (outfitId) {
+    // DB try_on_image_url 업데이트 — precache 전용 (sessionId 없을 때만)
+    // 사용자 생성 try-on은 DB를 건드리지 않음 (공용 필드 덮어쓰기 방지)
+    if (outfitId && !sessionId) {
       await supabase
         .from('outfit_recommendations')
         .update({ try_on_image_url: publicUrl })
