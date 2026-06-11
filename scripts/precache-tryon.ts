@@ -12,7 +12,7 @@
  *
  * 사전 준비:
  *   1. Supabase Storage 'clothing-images' 버킷에 전신 사진 업로드
- *      경로: person/demo-user-1.jpg
+ *      경로: person/demo-model.jpg
  *   2. PRECACHE_PERSON_IMAGE_URL 에 해당 공개 URL 설정
  *   3. 각 의류 아이템의 image_url 이 Storage에 업로드되어 있어야 함
  *      (WardrobePage에서 사진 추가 후 자동 업로드됨)
@@ -36,6 +36,7 @@ if (!PERSON_IMAGE_URL) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const FORCE = process.argv.includes('--force');
 
 // 데모 컨텍스트 5개 — seed.sql의 2개 + 추가 3개
 const DEMO_OUTFITS = [
@@ -151,11 +152,11 @@ async function run() {
     process.exit(1);
   }
 
-  // 4. try-on 생성 (이미 URL이 있는 건 스킵)
-  console.log('\n3️⃣  try-on 이미지 생성...');
+  // 4. try-on 생성 (이미 URL이 있는 건 --force 없으면 스킵)
+  console.log(`\n3️⃣  try-on 이미지 생성...${FORCE ? ' (--force: 전체 재생성)' : ''}`);
   for (const outfit of outfitRows as Array<{ id: string; item_ids: string[]; try_on_image_url: string }>) {
-    if (outfit.try_on_image_url) {
-      console.log(`  ⏭ ${outfit.id} — 이미 캐싱됨, 스킵`);
+    if (outfit.try_on_image_url && !FORCE) {
+      console.log(`  ⏭ ${outfit.id} — 이미 캐싱됨, 스킵 (재생성하려면 --force)`);
       continue;
     }
 
