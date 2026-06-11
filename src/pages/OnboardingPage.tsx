@@ -47,6 +47,15 @@ interface UploadedItem {
 // 서브 컴포넌트들
 // ─────────────────────────────────────────────────────────────
 
+// ── 공통 스텝 컨테이너 (ProgressHeader 높이 ≈84px + 24px 여백 = pt-[108px]) ──
+function StepContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-[108px] pb-10">
+      {children}
+    </div>
+  );
+}
+
 // ── Step 0: 환영 화면 ─────────────────────────────────────────
 const FREQ_OPTIONS = ['0-1', '2-3', '4-5', '6+'] as const;
 
@@ -176,8 +185,8 @@ function StepSelfie({ onNext }: StepSelfieProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-14 pb-10">
-      <h2 className="font-serif text-[24px] text-ink mb-1">셀카를 올려주세요</h2>
+    <StepContainer>
+      <h2 className="font-serif text-[24px] leading-normal text-ink mb-1">셀카를 올려주세요</h2>
       <p className="text-[13px] text-ink-muted mb-8">AI가 어깨·다리 비율을 자동으로 측정해요</p>
 
       {/* 업로드 / 미리보기 */}
@@ -296,7 +305,7 @@ function StepSelfie({ onNext }: StepSelfieProps) {
           건너뛰고 직접 입력하기
         </button>
       </div>
-    </div>
+    </StepContainer>
   );
 }
 
@@ -313,8 +322,8 @@ function StepBodyConfirm({ initial, onNext }: StepBodyConfirmProps) {
   const legLabel = LEG_RATIO_LABELS(legRatio);
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-14 pb-10">
-      <h2 className="font-serif text-[24px] text-ink mb-1">체형을 확인해주세요</h2>
+    <StepContainer>
+      <h2 className="font-serif text-[24px] leading-normal text-ink mb-1">체형을 확인해주세요</h2>
       <p className="text-[13px] text-ink-muted mb-8">AI가 자동으로 측정했어요. 다르면 조정하세요.</p>
 
       <div className="flex-1 space-y-6">
@@ -387,7 +396,7 @@ function StepBodyConfirm({ initial, onNext }: StepBodyConfirmProps) {
       >
         확정하고 계속하기
       </motion.button>
-    </div>
+    </StepContainer>
   );
 }
 
@@ -529,8 +538,8 @@ function StepClothes({ onNext }: StepClothesProps) {
   const canProceed = items.length >= 3;
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-14 pb-10">
-      <h2 className="font-serif text-[24px] text-ink mb-1">자주 입는 옷 10벌</h2>
+    <StepContainer>
+      <h2 className="font-serif text-[24px] leading-normal text-ink mb-1">자주 입는 옷 10벌</h2>
       <p className="text-[13px] text-ink-muted mb-3">
         전체 옷장 X — 가장 자주 입는 것만
       </p>
@@ -639,7 +648,7 @@ function StepClothes({ onNext }: StepClothesProps) {
       >
         {items.length < 3 ? `${3 - items.length}벌 더 추가해주세요` : '분류 결과 확인하기'}
       </motion.button>
-    </div>
+    </StepContainer>
   );
 }
 
@@ -681,8 +690,8 @@ function StepReview({ items, onDone }: StepReviewProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-cream px-[22px] pt-14 pb-10">
-      <h2 className="font-serif text-[24px] text-ink mb-1">AI가 분류했어요</h2>
+    <StepContainer>
+      <h2 className="font-serif text-[24px] leading-normal text-ink mb-1">AI가 분류했어요</h2>
       <p className="text-[13px] text-ink-muted mb-6">확인 후 저장하면 코디 추천이 시작돼요</p>
 
       <div className="flex-1 overflow-y-auto">
@@ -735,7 +744,7 @@ function StepReview({ items, onDone }: StepReviewProps) {
       >
         {saving ? '저장 중…' : '저장하고 첫 코디 보기 →'}
       </motion.button>
-    </div>
+    </StepContainer>
   );
 }
 
