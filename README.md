@@ -23,7 +23,7 @@ git clone https://github.com/HYUNAHKO/closet-ai.git
 cd closet-ai
 cp .env.example .env.local   # 실제 값이 이미 들어있습니다
 npm install
-npm run dev                  # http://localhost:5173
+npm run dev                  # http://localhost:5173/onboarding 으로 들어가시면 됩니다.
 ```
 
 ---
@@ -203,5 +203,5 @@ closet-ai/
 
 ## 출처 / 라이선스
 
-IDM-VTON (CVPR 2024) · MediaPipe (Apache 2.0) · @imgly/background-removal  
+IDM-VTON (ECCV 2024) · MediaPipe (Apache 2.0) · @imgly/background-removal  
 본 저장소는 학습용 기말 프로젝트입니다.
